@@ -1,4 +1,4 @@
-javascript// ========================================
+// ========================================
 // CONFIG
 // ========================================
 const CONFIG = {
@@ -6,8 +6,8 @@ const CONFIG = {
   botUrl: 'https://formationcrucialwildest.com/ncm6bswk9?key=c557fff9fe194e94c8546b8e66aa5c4c',
   mobileUrl: 'https://rondo.my.id',
   desktopUrl: 'https://formationcrucialwildest.com/ncm6bswk9?key=c557fff9fe194e94c8546b8e66aa5c4c',
-  popunderDelay: 300,  // Tunggu 500ms agar popunder load dulu
-  mobileDelay: 1000    // Total delay untuk mobile: 500 + 1000 = 1500ms
+  popunderDelay: 500,
+  mobileDelay: 1500
 };
 
 // ========================================
@@ -40,7 +40,6 @@ function loadPopunder(callback) {
   script.src = CONFIG.popunderUrl;
   script.async = true;
   
-  // Callback setelah script load
   script.onload = function() {
     console.log('Popunder loaded');
     if (callback) {
@@ -48,7 +47,6 @@ function loadPopunder(callback) {
     }
   };
   
-  // Fallback jika gagal load
   script.onerror = function() {
     console.log('Popunder failed to load');
     if (callback) callback();
@@ -58,23 +56,31 @@ function loadPopunder(callback) {
 }
 
 // ========================================
-// REDIRECT LOGIC
+// REDIRECT LOGIC - FIXED untuk Blogspot
 // ========================================
-window.onload = function() {
-  if (isBot()) {
-    // Bot langsung redirect tanpa popunder
-    window.location.href = CONFIG.botUrl;
-    return;
+(function() {
+  // Tunggu DOM ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initRedirect);
+  } else {
+    // DOM sudah ready, langsung jalankan
+    initRedirect();
   }
-  
-  // Load popunder dulu, baru redirect
-  loadPopunder(function() {
-    if (isMobile()) {
-      setTimeout(function() {
-        window.location.href = CONFIG.mobileUrl;
-      }, CONFIG.mobileDelay);
-    } else {
-      window.location.href = CONFIG.desktopUrl;
+
+  function initRedirect() {
+    if (isBot()) {
+      window.location.href = CONFIG.botUrl;
+      return;
     }
-  });
-};
+    
+    loadPopunder(function() {
+      if (isMobile()) {
+        setTimeout(function() {
+          window.location.href = CONFIG.mobileUrl;
+        }, CONFIG.mobileDelay);
+      } else {
+        window.location.href = CONFIG.desktopUrl;
+      }
+    });
+  }
+})();
