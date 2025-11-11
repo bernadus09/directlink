@@ -2,10 +2,10 @@
 // CONFIG
 // ========================================
 const CONFIG = {
-  popunderUrl: '//formationcrucialwildest.com/62/52/8b/62528b16899f546dcfe3d7c652d13893.js',
-  botUrl: 'https://formationcrucialwildest.com/ncm6bswk9?key=c557fff9fe194e94c8546b8e66aa5c4c',
+  popunderUrl: '//ominousplant.com/62/52/8b/62528b16899f546dcfe3d7c652d13893.js',
+  botUrl: 'https://ominousplant.com/ncm6bswk9?key=c557fff9fe194e94c8546b8e66aa5c4c',
   mobileUrl: 'https://rondo.my.id',
-  desktopUrl: 'https://formationcrucialwildest.com/ncm6bswk9?key=c557fff9fe194e94c8546b8e66aa5c4c',
+  desktopUrl: 'https://ominousplant.com/ncm6bswk9?key=c557fff9fe194e94c8546b8e66aa5c4c',
   popunderDelay: 300,
   mobileDelay: 1000,
   popunderTimeout: 2000,
